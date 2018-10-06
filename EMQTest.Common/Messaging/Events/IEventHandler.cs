@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace EMQTest.Common.Messaging.Events
 {
-    public interface IEventHandler<TEvent> where TEvent : IEvent
+    public interface IEventHandler<TEvent> : IEventHandlerDescriptor<TEvent, IEventHandler<TEvent>> where TEvent : IEvent
     {
         Task HandleAsync(TEvent @event);
     }

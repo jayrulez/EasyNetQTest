@@ -14,8 +14,9 @@ namespace EMQTest.Common.Messaging.EasyNetQ
         private readonly IWebHostBuilder _webHostBuilder;
         private readonly string _connectionString;
 
-        private Dictionary<Type, Type> _events = new Dictionary<Type, Type>();
-        private Dictionary<(Type Command, Type CommandResponse), Type> _commands = new Dictionary<(Type Command, Type CommandResponse), Type>();
+        private List<(Type EventType, Type EventHandlerType, Type EventHandlerImplementationType)> _events = new List<(Type Event, Type EventHandlerType, Type EventHandlerImplementation)>();
+        
+        private List<KeyValuePair<(Type Command, Type CommandResponse), Type>> _commands2 = new List<KeyValuePair<(Type Command, Type CommandResponse), Type>>();
 
         public BusBuilder(IWebHostBuilder webHostBuilder, string connectionString)
         {
@@ -23,9 +24,11 @@ namespace EMQTest.Common.Messaging.EasyNetQ
             _connectionString = connectionString;
         }
 
-        public BusBuilder AddEventHandler<TEvent, TEventHandler>() where TEvent : IEvent where TEventHandler : IEventHandler<TEvent>
+        public BusBuilder AddEventHandler<TEvent, TEventHandler>() 
+            where TEvent : IEvent 
+            where TEventHandler : IEventHandler<TEvent>, IEventHandlerDescriptor<TEvent, IEventHandler<TEvent>>
         {
-            _events.Add(typeof(TEvent), typeof(TEventHandler));
+            _events.Add((typeof(TEvent),typeof(IEventHandler<TEvent>), typeof(TEventHandler)));
 
             return this;
         }
@@ -35,7 +38,7 @@ namespace EMQTest.Common.Messaging.EasyNetQ
             where TCommandResponse : ICommandResponse
             where TCommandHandler : ICommandHandler<TCommand, TCommandResponse>
         {
-            _commands.Add((typeof(TCommand), typeof(TCommandResponse)), typeof(TCommandHandler));
+            _commands2.Add(new KeyValuePair<(Type Command, Type CommandResponse), Type>((typeof(TCommand), typeof(TCommandResponse)), typeof(TCommandHandler)));
 
             return this;
         }
@@ -49,10 +52,10 @@ namespace EMQTest.Common.Messaging.EasyNetQ
 
                     foreach (var @event in _events)
                     {
-                        serviceCollection.AddTransient(typeof(IEventHandler<>).MakeGenericType(@event.Key), @event.Value);
+                        serviceCollection.AddTransient(typeof(IEventHandlerDescriptor<,>).MakeGenericType(@event.EventType, @event.EventHandlerType), @event.EventHandlerImplementationType);
                     }
 
-                    foreach (var command in _commands)
+                    foreach (var command in _commands2)
                     {
                         serviceCollection.AddTransient(typeof(ICommandHandler<,>).MakeGenericType(command.Key.Command, command.Key.CommandResponse), command.Value);
                     }
@@ -66,12 +69,12 @@ namespace EMQTest.Common.Messaging.EasyNetQ
             {
                 var methodInfo = typeof(BusExtension).GetMethod(nameof(BusExtension.AddEventHandler));
 
-                var generic = methodInfo.MakeGenericMethod(@event.Key);
+                var generic = methodInfo.MakeGenericMethod(@event.EventType, @event.EventHandlerType, @event.EventHandlerImplementationType);
 
                 generic.Invoke(busClient, new object[] { busClient, host.Services });
             }
 
-            foreach (var command in _commands)
+            foreach (var command in _commands2)
             {
                 var methodInfo = typeof(BusExtension).GetMethod(nameof(BusExtension.AddCommandHandler));
 

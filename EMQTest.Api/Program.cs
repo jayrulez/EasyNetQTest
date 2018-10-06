@@ -31,6 +31,7 @@ namespace EMQTest.Api
                 .UseConfiguration(configuration)
                 .UseEasyNetQ("host=localhost")
                     .AddEventHandler<HelloEvent, HelloEventHandler>()
+                    .AddEventHandler<HelloEvent, HelloEventHandler2>()
                     .AddCommandHandler<HelloCommand, HelloCommandResponse, HelloCommandHandler>()
                 .Build()
                 .Run();
