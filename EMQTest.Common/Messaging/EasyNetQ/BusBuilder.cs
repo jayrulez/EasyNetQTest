@@ -64,21 +64,20 @@ namespace EMQTest.Common.Messaging.EasyNetQ
 
             var busClient = host.Services.GetRequiredService<IBus>();
 
+            var addEventHandlerMethodInfo = typeof(BusExtension).GetMethod(nameof(BusExtension.AddEventHandler));
 
             foreach (var @event in _events)
             {
-                var methodInfo = typeof(BusExtension).GetMethod(nameof(BusExtension.AddEventHandler));
-
-                var generic = methodInfo.MakeGenericMethod(@event.EventType, @event.EventHandlerType, @event.EventHandlerImplementationType);
+                var generic = addEventHandlerMethodInfo.MakeGenericMethod(@event.EventType, @event.EventHandlerType, @event.EventHandlerImplementationType);
 
                 generic.Invoke(busClient, new object[] { busClient, host.Services });
             }
 
+            var addCommandHandlerMethodInfo = typeof(BusExtension).GetMethod(nameof(BusExtension.AddCommandHandler));
+
             foreach (var command in _commands2)
             {
-                var methodInfo = typeof(BusExtension).GetMethod(nameof(BusExtension.AddCommandHandler));
-
-                var generic = methodInfo.MakeGenericMethod(command.Key.Command, command.Key.CommandResponse);
+                var generic = addCommandHandlerMethodInfo.MakeGenericMethod(command.Key.Command, command.Key.CommandResponse);
 
                 generic.Invoke(busClient, new object[] { busClient, host.Services });
             }

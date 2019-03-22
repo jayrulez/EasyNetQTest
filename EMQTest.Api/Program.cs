@@ -1,17 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using EMQTest.Api.Messaging.CommandHandlers;
+using EMQTest.Api.Messaging.EventHandlers;
+using EMQTest.Common.Messaging.EasyNetQ.Extensions;
+using EMQTest.Messages.Commands;
+using EMQTest.Messages.Events;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using EMQTest.Common.Messaging.EasyNetQ.Extensions;
-using EMQTest.Messages.Events;
-using EMQTest.Api.Messaging.EventHandlers;
-using EMQTest.Messages.Commands;
-using EMQTest.Api.Messaging.CommandHandlers;
+using System.IO;
 
 namespace EMQTest.Api
 {
